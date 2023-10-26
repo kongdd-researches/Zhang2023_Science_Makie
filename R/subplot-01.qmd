@@ -1,0 +1,20 @@
+```{r}
+source("R/main_pkgs.R")
+
+p <- ggplot() + 
+  theme(plot.title = element_markdown()) + 
+  labs(title = title) 
+p
+
+write_fig(p, 'd:/Rplot.pdf', 10, 5)
+```
+
+```{r}
+```
+
+```{r}
+year0 = 2001
+p1 = plot_line(year0)
+
+write_fig(p1, 'd:/Rplot.pdf', 10, 3)
+```
