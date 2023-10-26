@@ -2,4 +2,5 @@
 
 ![](images/README/wa_anom_2001.png)
 
-![](images/README/Makie_3d.png)
+
+https://github.com/kongdd-researches/Zhang2023_Science_Makie/assets/9815742/1def14ad-f135-46a5-86be-90b9e1a046a0
