@@ -20,7 +20,16 @@ fs = dir("data/yearly_anom")[1:end-1]
 
 rasters = [RasterStack(f) for f in fs]
 ra = getproperty.(rasters, :layer1)
+
+r_land = Raster("./data/Global_land.tif")
 ```
+
+```{julia}
+cmap = ["blue", "yellow"]
+# cmap = colormap(:viridis)
+heatmap(r_land, colormap=cmap, alpha=0.1, fillalpha=0.1)
+```
+
 
 ```{julia}
 using Interpolations
@@ -33,49 +42,73 @@ ipt = DataInterpolations.QuadraticInterpolation(ra, 1:length(ra), extrapolate=tr
 ```{julia}
 font_size = 24
 kw_axes = (xticklabelsize=font_size, yticklabelsize=font_size,
-  titlesize = 48*4,
+  titlesize=48 * 4,
+  titlefontsize=40,
   xlabelsize=font_size, ylabelsize=font_size,
   xlabelfont=:bold, ylabelfont=:bold)
 mytheme = Theme(fontsize=30, Axis=kw_axes)
 set_theme!(mytheme)
 
 # deg2rad
-range_azimuth = (-180:180)
-range_elevation = (-90:90)
-
+range_azimuth = (-360:360)
+range_elevation = (-180:180)
 # , outer_padding=2
-fig = Figure(resolution=(1600, 1200)) # figure_padding = 10
+fig = Figure(resolution=(1600, 1200), figure_padding=30)
 
-# sg = SliderGrid(fig[2, 1],
-#   (label="azimuth", range=range_azimuth, startvalue=-68),
-#   (label="elevation", range=range_elevation, startvalue=30)
-# )
-# sl_azimuth, sl_evev = sg.sliders
-# azimuth = @lift deg2rad($(sl_azimuth.value))
-# elev = @lift deg2rad($(sl_evev.value))
+sg = SliderGrid(fig[2, 1],
+  (label="azimuth", range=range_azimuth, startvalue=-68),
+  (label="elevation", range=range_elevation, startvalue=30)
+)
+sl_azimuth, sl_evev = sg.sliders
+azimuth = @lift deg2rad($(sl_azimuth.value))
+elev = @lift deg2rad($(sl_evev.value))
 
-azimuth = deg2rad(-68)
-elev = deg2rad(30)
+# azimuth = deg2rad(-68)
+# elev = deg2rad(30)
 
 # , title="WA Temperature", xlabel="Longitude", ylabel="Latitude"
-ax = Axis3(fig[1, 1], perspectiveness=0.5,
+xticks = -180:60:180
+yticks = -30:30:90
+
+zticks = -500:500:500
+# zticklabels = -zticks
+
+ax = Axis3(fig[1, 1]; perspectiveness=0.5,
   aspect=(1, 1, 0.2),
+  xlabel="", ylabel="", zlabel="WA",
+  limits=([-180, 180], [-55, 90], [-1, 1] .* 500),
+  xticks, yticks,
+  # zreversed=true,
+  xticklabelsvisible=false, yticklabelsvisible=false,
+  xticksvisible=false, yticksvisible=false,
+  zticks, 
+  # zticklabels,
   # xlabel="Latitude",  ylabel="Longitude", 
   # zlabel="Water availability anomaly",
   # zlims = (-2000, 2000),
   azimuth=azimuth,
   elevation=elev)
-zlims = [-1, 1] .* 500
-zlims!(ax, zlims)
+# zlims = [-1, 1] .* 500
+# zlims!(ax, zlims)
 
-plt = surface!(ax, ipt(1.0); transparency=true, 
+plt = surface!(ax, ipt(2); transparency=true,
   # highclip=:blue, lowclip=:red,
   colorrange=zlims,
   colormap=Reverse(:darktest))
 
-ax.title[] = "2021"
+year = 2001
+ax.title[] = "Water availability anomaly $year"
+ax.titlesize[] = 48
 
-Colorbar(fig[1, 2], plt, label="Water availability anomaly (mm/year)")
+
+bar = Colorbar(fig[1, 2], plt,
+  # titlelocation = "left",
+  label="(mm/year)",
+  labelrotation=pi / 2 * 3,
+  labelpadding=0,
+  height=Relative(0.65),
+  ticks=-500:250:500,
+  tellheight=false)
 
 # plt = surface!(ax, ipt(1.0); 
 # axis=(; type=Axis3,
@@ -86,23 +119,25 @@ Colorbar(fig[1, 2], plt, label="Water availability anomaly (mm/year)")
 #   figure=(; resolution=(1600, 1600))
 # )
 # col = "#000000"
-# hm = heatmap!(ax, ipt(1.0); nan_color=:skyblue)
+nan_color = RGBA(parse(Colorant, "SkyBlue"), 0.1) # SkyBlue
+# hm = heatmap!(ax, ipt(1.0); nan_color=col)
+hm = heatmap!(ax, r_land, colormap=cmap) # , nan_color
 # translate!(hm, 0, 0, -30) # get the heatmap to the bottom of the plot
 fig
 ```
 
 ```{julia}
-hm = heatmap!(ipt(1.0); nan_color=:lightblue)
+# hm = heatmap!(ipt(1.0); nan_color=:lightblue)
 ```
 
 ```{julia}
 years = 2001:2020
-
 fout = "wa_surface_animation_02.mp4"
 
-@time record(fig, fout, LinRange(1, 12, 480 ÷ 4); framerate=20) do i
+@time record(fig, fout, LinRange(2, 20, 480 ÷ 4); framerate=20) do i
   k = floor(Int, i)
-  ax.title[] = @sprintf "%d" years[k]
+  # ax.title[] = @sprintf "%d" years[k]
+  ax.title[] = "Water availability anomaly $(years[k])"
   r = ipt(i)
   data = r.data[:, end:-1:1]
   plt.input_args[3][] = data
