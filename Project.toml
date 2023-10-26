@@ -1,0 +1,13 @@
+[deps]
+ArchGDAL = "c9ce4bd3-c3d5-55b8-8973-c0e20141b8c3"
+DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
+FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+GeoMakie = "db073c08-6b98-4ee5-b6a4-5efafb3259c6"
+GeometryBasics = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+RasterDataSources = "3cb90ccd-e1b6-4867-9617-4276c8b2ca36"
+Rasters = "a3a2b9e3-a471-40c9-b274-f788e487c689"
+
+[compat]
+Makie = "0.19.6"

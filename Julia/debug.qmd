@@ -1,0 +1,52 @@
+```{julia}
+using Rasters
+using RasterDataSources
+using ArchGDAL
+using GLMakie
+using GeometryBasics
+# using Makie.GeometryBasics
+using GeometryBasics: Tesselation, uv_normal_mesh
+# using DataInterpolations, Printf
+
+m = GeometryBasics.uv_normal_mesh(
+  GeometryBasics.Tesselation(
+    GeometryBasics.Sphere(
+      Point3f(0), 1.0f0
+    ),
+    200
+  )
+);
+
+p = decompose(Point3f0, m)
+uv = decompose_uv(m)
+norms = decompose_normals(m);
+cmap = [:darkblue, :deepskyblue2, :deepskyblue, :gold, :tomato3, :red, :darkred]
+
+
+ENV["RASTERDATASOURCES_PATH"] = "data"
+worldclim_stacks = [RasterStack(WorldClim{Climate}, month=i) for i in 1:12]
+ra = worldclim_stacks[10].tmax
+
+fig = Figure(resolution=(1600, 1600), backgroundcolor=:snow2) # 地图
+ax, plt_obj = mesh(fig[1, 1],
+  uv_normal_mesh(Tesselation(Makie.GeometryBasics.Sphere(Point3f(0), 0.99), 128));
+  color=(:white, 0.1), transparency=true,
+  axis=(type=LScene, show_axis=false)
+) 
+
+fig
+```
+
+```{julia}
+color = Makie.convert_arguments(Makie.ContinuousSurface(), ra)[3]'
+
+temperature_plot = mesh!(fig[1, 1],
+  m;
+  color,
+  colorrange=(-0.1, 0.1),
+  colormap=:tableau_temperature, #cmap,
+  shading=true,
+  transparency=false
+)
+fig
+```
